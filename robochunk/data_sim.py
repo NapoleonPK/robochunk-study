@@ -44,6 +44,7 @@ class EpisodeSpec:
     pause_max: int = 5
     overlap_max: int = 3
     speed_range: tuple = (0.5, 1.5)
+    noise_seed: int | None = None  # separate RNG for action noise (near-duplicates: same seed, new noise)
 
 
 def _min_jerk(u):
@@ -216,6 +217,7 @@ def run_episode(spec: EpisodeSpec):
             return [w[0], w[1], w[2] + RETREAT, 1.0]
         raise ValueError(name)
 
+    noise_rng = rng if spec.noise_seed is None else np.random.default_rng(spec.noise_seed)
     rec = {k: [] for k in ["obs", "action", "phase", "contact", "success"]}
     queue = list(plan)
     next_start = 0
@@ -243,7 +245,7 @@ def run_episode(spec: EpisodeSpec):
         a = np.empty(4)
         a[:3] = (tgt[:3] - cur[OBS["grip_pos"]]) / MAX_STEP_M
         a[3] = tgt[3]
-        a += rng.normal(0, spec.action_noise, 4)
+        a += noise_rng.normal(0, spec.action_noise, 4)
         a = np.clip(a, -1, 1)
         rec["obs"].append(cur.copy())
         rec["action"].append(a.copy())
