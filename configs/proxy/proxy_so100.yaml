@@ -3,10 +3,10 @@ batch: 64
 weight_decay: 0.01
 warmup_steps: 200
 device: cpu
-max_epochs: 2000
-patience: 100
-max_minutes: 30
+max_epochs: 6000
+patience: 400
+max_minutes: 45
 method: proxy
 dataset: real:so100
-lr: 0.003
+lr: 0.001
 seed: 0

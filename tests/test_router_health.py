@@ -1,11 +1,12 @@
 """Router health on the pilot split: the learned boundary rate is within 20% of 1/N, no collapse.
-Reads the pilot runs (run `scripts/run.sh configs/router/router_lntrue_a3.0.yaml configs/router/health_N*.yaml` first)."""
+Reads the Amendment-1 pilot runs at the frozen alpha 0.3 and lr 3e-4
+(run `scripts/run.sh configs/pilot_v2/lr_learned_lr3e-4.yaml configs/pilot_v2/health_lr3e-4_N*_a0.3.yaml` first)."""
 import json
 from pathlib import Path
 
 import pytest
 
-RUNS = {10: "router_lntrue_a3.0", 5: "health_learned_N5", 20: "health_learned_N20"}
+RUNS = {10: "p2_lr_learned_lr3e-4", 5: "p2_health_lr3e-4_N5_a0.3", 20: "p2_health_lr3e-4_N20_a0.3"}
 
 
 @pytest.mark.parametrize("N", sorted(RUNS))

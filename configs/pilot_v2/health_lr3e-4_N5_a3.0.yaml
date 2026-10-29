@@ -1,0 +1,11 @@
+run_id: p2_health_lr3e-4_N5_a3.0
+seed: 0
+splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
+max_epochs: 2000
+patience: 150
+max_minutes: 45
+method: learned
+lr: 3e-4
+router_norm: true
+alpha: 3.0
+N: 5

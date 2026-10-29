@@ -1,13 +1,13 @@
-# Frozen at the pre-registration commit. Chosen on the pilot split only (docs/PILOT.md).
+# Frozen at the pre-registration commit; alpha, lr and budgets re-frozen by Amendment 1. Chosen on the pilot split only (docs/PILOT.md).
 N_main: 10
 real_datasets: {so100: 12, koch: 12}   # N_real = round(10 * 30 / 25)
-router: {alpha: 3.0, router_norm: true, identity_init: true}
-lr: {learned: 1.0e-3, fixed: 3.0e-4, random: 1.0e-3, velocity: 1.0e-3, entropy: 3.0e-4, flat: 3.0e-4, proxy: 3.0e-3}
+router: {alpha: 0.3, router_norm: true, identity_init: true}
+lr: {learned: 3.0e-4, fixed: 3.0e-4, random: 3.0e-4, velocity: 3.0e-4, entropy: 1.0e-3, flat: 3.0e-4, proxy: 1.0e-3}
 train: {batch: 64, weight_decay: 0.01, warmup_steps: 200, device: cpu}
 budget:
-  sim: {max_epochs: 200, patience: 20, max_minutes: 30}
-  flat: {max_epochs: 200, patience: 20, max_minutes: 45}
-  real: {max_epochs: 2000, patience: 100, max_minutes: 30}
-  partb: {max_epochs: 800, patience: 50, max_minutes: 30}
+  sim: {max_epochs: 600, patience: 30, max_minutes: 50}
+  flat: {max_epochs: 600, patience: 30, max_minutes: 75}
+  real: {max_epochs: 6000, patience: 400, max_minutes: 45}
+  partb: {max_epochs: 1500, patience: 60, max_minutes: 40}
 exploratory:
   refractory_steps: 3

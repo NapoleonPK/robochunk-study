@@ -1,0 +1,9 @@
+run_id: p2_lr_flat_lr1e-3
+seed: 0
+splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
+max_epochs: 2000
+patience: 150
+max_minutes: 45
+method: flat
+N: 1
+lr: 1e-3

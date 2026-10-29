@@ -1,0 +1,9 @@
+run_id: p2_lr_random_lr3e-3
+seed: 0
+splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
+max_epochs: 2000
+patience: 150
+max_minutes: 45
+method: random
+N: 10
+lr: 3e-3

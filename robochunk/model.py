@@ -13,6 +13,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 LOGVAR_MIN, LOGVAR_MAX = -10.0, 5.0
+# Resolution floor of the likelihood, in normalised units (10% of each channel's training std).
+# Without it, near-deterministic channels (position given the commanded action) let the NLL run
+# down to the log-variance clamp and dominate bits/step (pre-registration amendment 1).
+SIGMA_FLOOR = 0.1
 
 
 class ConvBlock(nn.Module):
@@ -88,7 +92,7 @@ def ratio_loss(b, p, mask, N):
 
 class RoboChunk(nn.Module):
     def __init__(self, n_ch, d0=128, d1=256, main_layers=4, heads=4, encoder="gru", router_norm=False,
-                 identity_init=True, max_chunks=512, refractory=0):
+                 identity_init=True, max_chunks=1024, refractory=0):
         super().__init__()
         self.n_ch = n_ch
         self.refractory = refractory  # exploratory: no new boundary within this many steps after one
@@ -186,7 +190,8 @@ def gaussian_nll(out, x, mask):
     Returns (B, T-1) values and the (B, T-1) validity mask."""
     mu, lv = out["mu"][:, :-1], out["logvar"][:, :-1]
     y = x[:, 1:]
-    nll = 0.5 * (lv + (y - mu) ** 2 * torch.exp(-lv) + math.log(2 * math.pi)).sum(-1)
+    var = torch.exp(lv) + SIGMA_FLOOR ** 2
+    nll = 0.5 * (torch.log(var) + (y - mu) ** 2 / var + math.log(2 * math.pi)).sum(-1)
     valid = mask[:, 1:] & mask[:, :-1]
     return nll, valid
 

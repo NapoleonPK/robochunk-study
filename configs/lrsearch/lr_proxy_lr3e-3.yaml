@@ -1,8 +1,0 @@
-run_id: lr_proxy_N10_lr3e-3
-method: proxy
-N: 10
-lr: 3e-3
-seed: 0
-splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
-max_epochs: 1000
-patience: 100

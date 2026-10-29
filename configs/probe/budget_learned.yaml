@@ -1,0 +1,11 @@
+run_id: probe_budget_learned
+seed: 0
+splits: {train: "train", val: "val", test: "val"}
+max_epochs: 2000
+patience: 40
+max_minutes: 90
+method: learned
+lr: 3e-4
+router_norm: true
+alpha: 0.3
+N: 10

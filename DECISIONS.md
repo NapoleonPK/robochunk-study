@@ -64,3 +64,15 @@ Choices the brief left open, one line each, with the reason. Dated entries; newe
 - Budgets: sim 200 epochs / patience 20 / 30 min; Flat 45 min and run alone (it is ~3x slower per step; +50% is the allowed margin); real 2000 epochs / patience 100 / 30 min (few, long episodes: 1–2 batches per epoch); Part B 800 epochs / patience 50 / 30 min.
 - Conv-encoder ablation: depthwise causal conv written as a sum of k=4 shifted products (identical maths, 10x faster than grouped Conv1d on CPU).
 - Exploratory refractory router: after a kept boundary at t, boundaries at t+1..t+3 are dropped (causal, applied before downsampling; p unchanged).
+
+## Amendment 1 (2026-10-29) — see PREREGISTRATION.md
+- Likelihood floor σ = 0.1 (normalised units) in every NLL; 0.01 was tried on pilot models and barely differs from the old clamp (σ ≈ 0.0067), so 0.1 was chosen (≈ the expert's action-noise scale).
+- Action noise has its own RNG (seed + 104729, or `noise_seed`); all data regenerated; C2 now a true near-duplicate.
+- Random rule counts the forced step-0 boundary towards the 1/N rate.
+- Pilot runs: 2000 epochs, patience 150, ≤ 45 min (pilot only).
+- Old pilot and the aborted main start are archived in `runs/_v1_before_amendment/` (not used for anything).
+- Policy calibration on regenerated R (broad-pilot seeds 510000+): 41.5% success, within 20–70%; R stays at 500.
+- Pilot v2 choices: α = 0.3 (smallest healthy α; checked at lr 3e-4 for N = 5/10/20); lr learned/fixed/random/velocity/flat 3e-4, entropy 1e-3, proxy 1e-3. The pilot v1 decisions above ("Pilot outcomes frozen") are superseded.
+- Velocity and entropy thresholds are fitted on the validation split (the proxy's NLL on its own training data gave a held-out rate of 0.136 for target 0.10).
+- Main-run budget set from two probe runs on the main train/val splits (test pointed at val, so test is untouched): see PREREGISTRATION.md Amendment 1.
+- Téo delegated all decisions to me (2026-10-29); going public stays with him.

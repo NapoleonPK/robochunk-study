@@ -1,7 +1,0 @@
-run_id: pilot_learned_N10_lr3e-4
-method: learned
-N: 10
-lr: 3e-4
-seed: 0
-splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
-max_minutes: 15

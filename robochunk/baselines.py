@@ -15,8 +15,10 @@ def fixed_boundaries(T, N):
 
 
 def random_boundaries(T, N, episode_seed):
+    """Bernoulli boundaries whose expected count, including the forced step-0 boundary, is T / N."""
     rng = np.random.default_rng(episode_seed)
-    b = (rng.random(T) < 1.0 / N).astype(np.int8)
+    q = max(0.0, (T / N - 1) / (T - 1)) if T > 1 else 0.0
+    b = (rng.random(T) < q).astype(np.int8)
     b[0] = 1
     return b
 

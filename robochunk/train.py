@@ -59,6 +59,7 @@ def build_model(cfg, n_ch):
 
 def proxy_surprise(proxy_dir, split_eps, device, inputs=None):
     """Per-episode NLL of x(t) | x(<t) from a trained proxy run (in nats, step 0 = inf)."""
+    assert (Path(proxy_dir) / "metrics.json").exists(), f"proxy {proxy_dir} has not finished"
     pcfg = yaml.safe_load(open(Path(proxy_dir) / "config.yaml"))
     norm = Normalizer.load(Path(proxy_dir) / "norm.json")
     model = Proxy(len(norm.mean)).to(device)
@@ -77,7 +78,9 @@ def proxy_surprise(proxy_dir, split_eps, device, inputs=None):
 
 def make_boundaries(cfg, data, device):
     """Boundary arrays per split for non-learned rules (None for learned / proxy).
-    Thresholds for velocity and entropy are fitted on the training split only."""
+    Thresholds for velocity and entropy are fitted on the validation split (held out from the
+    model and the proxy: the proxy's NLL on its own training data is lower, which would push the
+    held-out rate above 1/N)."""
     method, N = cfg["method"], cfg["N"]
     if method in ("learned", "proxy"):
         return {k: None for k in data}, {}
@@ -90,12 +93,12 @@ def make_boundaries(cfg, data, device):
         out = {k: [BL.random_boundaries(len(e["x"]), N, episode_seed(k, i) + cfg["seed"]) for i, e in enumerate(v)]
                for k, v in data.items()}
     elif method == "velocity":
-        _, thr = BL.velocity_boundaries([e["speed"] for e in data["train"]], N)
+        _, thr = BL.velocity_boundaries([e["speed"] for e in data["val"]], N)
         out = {k: BL.velocity_boundaries([e["speed"] for e in v], N, thr)[0] for k, v in data.items()}
         info["threshold"] = float(thr)
     elif method == "entropy":
         sur = {k: proxy_surprise(cfg["proxy_run"], v, device, cfg["inputs"]) for k, v in data.items()}
-        _, thr = BL.entropy_boundaries(sur["train"], N)
+        _, thr = BL.entropy_boundaries(sur["val"], N)
         out = {k: BL.entropy_boundaries(s, N, thr)[0] for k, s in sur.items()}
         info["threshold"] = float(thr)
     else:
@@ -178,12 +181,12 @@ def main(cfg_path):
         cfg[k] = float(cfg[k])  # PyYAML reads "3e-4" as a string
     run_dir = Path("runs") / cfg["run_id"]
     run_dir.mkdir(parents=True, exist_ok=True)
-    yaml.safe_dump(cfg, open(run_dir / "config.yaml", "w"))
-    if not (run_dir / "git.txt").exists():
-        (run_dir / "git.txt").write_text(git_hash() + "\n")
     if (run_dir / "metrics.json").exists() and not cfg["eval_only"]:
         print("already finished:", run_dir)
         return
+    yaml.safe_dump(cfg, open(run_dir / "config.yaml", "w"))
+    if not (run_dir / "git.txt").exists():
+        (run_dir / "git.txt").write_text(git_hash() + "\n")
     set_seed(cfg["seed"])
     device = torch.device(cfg["device"])
     data = load_dataset(cfg)
@@ -251,6 +254,8 @@ def main(cfg_path):
         if ev["bits"] < state["best"]:
             state["best"], state["best_epoch"] = ev["bits"], state["epoch"]
             torch.save(model.state_dict(), run_dir / "best.pt")
+            save_ckpt()  # keep best.pt and the resumable bookkeeping in step
+            last_ck = time.time()
         if state["epoch"] % 5 == 0 or state["epoch"] == 1:
             r = f"{ev['rate']:.4f}" if ev["rate"] else "-"
             log(run_dir, f"ep {state['epoch']} train {tr_loss / steps_per_epoch:.4f} val_bits {ev['bits']:.4f} "
