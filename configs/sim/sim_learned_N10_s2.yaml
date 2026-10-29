@@ -1,0 +1,15 @@
+run_id: sim_learned_N10_s2
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 200
+patience: 20
+max_minutes: 30
+method: learned
+N: 10
+seed: 2
+lr: 0.001
+alpha: 3.0
+router_norm: true
+identity_init: true

@@ -22,14 +22,16 @@ class ConvBlock(nn.Module):
         super().__init__()
         self.k = k
         self.n1, self.n2 = nn.LayerNorm(d), nn.LayerNorm(d)
-        self.conv = nn.Conv1d(d, d, k, groups=d)
+        self.conv_w = nn.Parameter(torch.randn(k, d) / math.sqrt(k))  # depthwise causal kernel
+        self.conv_b = nn.Parameter(torch.zeros(d))
         self.w1, self.w3 = nn.Linear(d, 2 * d), nn.Linear(d, 2 * d)
         self.w2 = nn.Linear(2 * d, d)
 
     def forward(self, x):
-        h = self.n1(x).transpose(1, 2)
-        h = self.conv(F.pad(h, (self.k - 1, 0))).transpose(1, 2)
-        x = x + h
+        h = self.n1(x)
+        T = h.shape[1]
+        hp = F.pad(h, (0, 0, self.k - 1, 0))  # left-pad time: output at t sees t-k+1..t
+        x = x + sum(hp[:, j:j + T] * self.conv_w[j] for j in range(self.k)) + self.conv_b
         h = self.n2(x)
         return x + self.w2(F.silu(self.w1(h)) * self.w3(h))
 
@@ -86,9 +88,10 @@ def ratio_loss(b, p, mask, N):
 
 class RoboChunk(nn.Module):
     def __init__(self, n_ch, d0=128, d1=256, main_layers=4, heads=4, encoder="gru", router_norm=False,
-                 identity_init=True, max_chunks=512):
+                 identity_init=True, max_chunks=512, refractory=0):
         super().__init__()
         self.n_ch = n_ch
+        self.refractory = refractory  # exploratory: no new boundary within this many steps after one
         self.inp = nn.Linear(n_ch, d0)
         self.encoder = SeqStack(d0, encoder)
         self.router_norm = nn.LayerNorm(d0) if router_norm else nn.Identity()
@@ -112,6 +115,17 @@ class RoboChunk(nn.Module):
         p = (0.5 * (1 - cos)).clamp(0, 1)
         return torch.cat([torch.ones_like(p[:, :1]), p], 1)
 
+    def _suppress(self, b):
+        """Causal refractory period: drop a boundary at t if another one was kept in t-r..t-1."""
+        b = b.clone()
+        b[:, 0] = True
+        last = torch.zeros(b.shape[0], dtype=torch.long, device=b.device)
+        for t in range(1, b.shape[1]):
+            keep = b[:, t] & (t - last > self.refractory)
+            b[:, t] = keep
+            last = torch.where(keep, torch.full_like(last, t), last)
+        return b
+
     def forward(self, x, mask, boundaries=None):
         """x: (B,T,C) normalised; mask: (B,T) bool valid steps; boundaries: (B,T) 0/1 for a fixed
         rule, or None to use the learned router. Returns dict(mu, logvar, p, b)."""
@@ -120,6 +134,8 @@ class RoboChunk(nn.Module):
         if boundaries is None:
             p = self.route(xh)
             b = (p >= 0.5) & mask
+            if self.refractory:
+                b = self._suppress(b)
         else:
             b = boundaries.bool() & mask
             p = b.float()

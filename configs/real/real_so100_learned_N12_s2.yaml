@@ -1,0 +1,16 @@
+run_id: real_so100_learned_N12_s2
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 2000
+patience: 100
+max_minutes: 30
+method: learned
+dataset: real:so100
+N: 12
+seed: 2
+lr: 0.001
+alpha: 3.0
+router_norm: true
+identity_init: true

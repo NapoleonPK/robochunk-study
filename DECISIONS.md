@@ -57,3 +57,10 @@ Choices the brief left open, one line each, with the reason. Dated entries; newe
 - Broad test = 200 episodes, seeds 500000–500199, whole table, mass x1 or x3 and friction x1 or x0.2, each with probability 1/2.
 - Calibration on a separate broad-pilot set (seeds 510000–510199), so the evaluation seeds stay untouched: BC on R (500) succeeds on 45.0% -> within 20–70%, R size unchanged.
 - BC policy: MLP 28 -> 256 -> 256 -> 256 -> 4 (tanh), inputs z-scored, MSE, AdamW lr 1e-3, batch 512, 20,000 steps (fixed number of updates for R and R ∪ C), success = object within 5 cm of goal at step 150.
+
+## Pilot outcomes frozen in configs/frozen.yaml (2026-10-29)
+- Router: LayerNorm before W_q/W_k and α = 3.0 (α ≤ 1 left the rate at 0.14–0.50 for target 0.10; α = 2 gave 0.120, on the edge; α = 3 gave 0.099). Same α at every N; pilot rates 0.207 (N=5), 0.099 (N=10), 0.045 (N=20), all within 20% of 1/N.
+- Learning rates by pilot validation bits: learned 1e-3, fixed 3e-4, random 1e-3, velocity 1e-3, entropy 3e-4, flat 3e-4, proxy 3e-3. The entropy pilot used the best pilot proxy (lr 3e-3).
+- Budgets: sim 200 epochs / patience 20 / 30 min; Flat 45 min and run alone (it is ~3x slower per step; +50% is the allowed margin); real 2000 epochs / patience 100 / 30 min (few, long episodes: 1–2 batches per epoch); Part B 800 epochs / patience 50 / 30 min.
+- Conv-encoder ablation: depthwise causal conv written as a sum of k=4 shifted products (identical maths, 10x faster than grouped Conv1d on CPU).
+- Exploratory refractory router: after a kept boundary at t, boundaries at t+1..t+3 are dropped (causal, applied before downsampling; p unchanged).

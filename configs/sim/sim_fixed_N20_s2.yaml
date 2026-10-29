@@ -1,0 +1,12 @@
+run_id: sim_fixed_N20_s2
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 200
+patience: 20
+max_minutes: 30
+method: fixed
+N: 20
+seed: 2
+lr: 0.0003

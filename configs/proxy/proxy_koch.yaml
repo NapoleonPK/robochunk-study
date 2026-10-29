@@ -1,0 +1,12 @@
+run_id: proxy_koch
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 2000
+patience: 100
+max_minutes: 30
+method: proxy
+dataset: real:koch
+lr: 0.003
+seed: 0

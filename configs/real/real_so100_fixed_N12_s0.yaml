@@ -1,0 +1,13 @@
+run_id: real_so100_fixed_N12_s0
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 2000
+patience: 100
+max_minutes: 30
+method: fixed
+dataset: real:so100
+N: 12
+seed: 0
+lr: 0.0003

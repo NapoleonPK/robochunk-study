@@ -1,0 +1,20 @@
+run_id: partb_robochunk_N10_s1
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 800
+patience: 50
+max_minutes: 30
+method: learned
+N: 10
+seed: 1
+lr: 0.001
+alpha: 3.0
+router_norm: true
+identity_init: true
+dataset: partb:R
+splits:
+  train: R
+  val: R_val
+  test: R_heldout

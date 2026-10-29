@@ -1,0 +1,17 @@
+run_id: partb_flat_s2
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 800
+patience: 50
+max_minutes: 30
+method: flat
+N: 1
+seed: 2
+lr: 0.0003
+dataset: partb:R
+splits:
+  train: R
+  val: R_val
+  test: R_heldout

@@ -1,0 +1,13 @@
+run_id: sim_entropy_N5_s0
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 200
+patience: 20
+max_minutes: 30
+method: entropy
+N: 5
+seed: 0
+lr: 0.0003
+proxy_run: runs/proxy_sim

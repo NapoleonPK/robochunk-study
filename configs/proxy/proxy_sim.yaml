@@ -1,0 +1,11 @@
+run_id: proxy_sim
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 200
+patience: 20
+max_minutes: 30
+method: proxy
+lr: 0.003
+seed: 0

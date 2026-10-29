@@ -28,7 +28,7 @@ DEFAULTS = dict(
     lr=1e-3, weight_decay=0.01, batch=64, warmup_steps=200, max_epochs=300, patience=20,
     max_minutes=30, alpha=0.03, router_norm=False, identity_init=True, device="cpu",
     d0=128, d1=256, main_layers=4, heads=4, proxy_run=None, splits=dict(train="train", val="val", test="test"),
-    eval_only=False,
+    eval_only=False, refractory=0,
 )
 CKPT_EVERY_S = 600
 LN2 = math.log(2)
@@ -54,10 +54,10 @@ def build_model(cfg, n_ch):
     if cfg["method"] == "proxy":
         return Proxy(n_ch)
     return RoboChunk(n_ch, cfg["d0"], cfg["d1"], cfg["main_layers"], cfg["heads"], cfg["encoder"],
-                     cfg["router_norm"], cfg["identity_init"])
+                     cfg["router_norm"], cfg["identity_init"], refractory=cfg["refractory"])
 
 
-def proxy_surprise(proxy_dir, split_eps, device):
+def proxy_surprise(proxy_dir, split_eps, device, inputs=None):
     """Per-episode NLL of x(t) | x(<t) from a trained proxy run (in nats, step 0 = inf)."""
     pcfg = yaml.safe_load(open(Path(proxy_dir) / "config.yaml"))
     norm = Normalizer.load(Path(proxy_dir) / "norm.json")
@@ -71,7 +71,7 @@ def proxy_surprise(proxy_dir, split_eps, device):
             x, m, _ = pad_batch(seqs, device=device)
             s = step_surprise(model, x, m).cpu().numpy()
             out += [s[j, :len(q)] for j, q in enumerate(seqs)]
-    assert pcfg["inputs"] == pcfg["inputs"]
+    assert inputs is None or pcfg["inputs"] == inputs, "proxy trained on different input channels"
     return out
 
 
@@ -94,7 +94,7 @@ def make_boundaries(cfg, data, device):
         out = {k: BL.velocity_boundaries([e["speed"] for e in v], N, thr)[0] for k, v in data.items()}
         info["threshold"] = float(thr)
     elif method == "entropy":
-        sur = {k: proxy_surprise(cfg["proxy_run"], v, device) for k, v in data.items()}
+        sur = {k: proxy_surprise(cfg["proxy_run"], v, device, cfg["inputs"]) for k, v in data.items()}
         _, thr = BL.entropy_boundaries(sur["train"], N)
         out = {k: BL.entropy_boundaries(s, N, thr)[0] for k, s in sur.items()}
         info["threshold"] = float(thr)

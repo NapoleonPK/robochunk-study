@@ -8,8 +8,8 @@ from robochunk.model import Proxy, RoboChunk, gaussian_nll
 torch.manual_seed(0)
 
 
-def _model(encoder="gru"):
-    m = RoboChunk(n_ch=11, d0=32, d1=64, main_layers=2, heads=2, encoder=encoder)
+def _model(encoder="gru", refractory=0):
+    m = RoboChunk(n_ch=11, d0=32, d1=64, main_layers=2, heads=2, encoder=encoder, refractory=refractory)
     # random router weights so boundaries actually depend on the input
     with torch.no_grad():
         m.wq.weight.normal_()
@@ -18,15 +18,15 @@ def _model(encoder="gru"):
 
 
 @pytest.mark.parametrize("encoder", ["gru", "conv"])
-@pytest.mark.parametrize("rule", ["learned", "fixed"])
+@pytest.mark.parametrize("rule", ["learned", "fixed", "refractory"])
 def test_causality(encoder, rule):
-    m = _model(encoder)
+    m = _model(encoder, refractory=3 if rule == "refractory" else 0)
     T = 60
     x = torch.randn(1, T, 11)
     mask = torch.ones(1, T, dtype=torch.bool)
     b = torch.zeros(1, T, dtype=torch.int8)
     b[:, ::7] = 1
-    bnd = None if rule == "learned" else b
+    bnd = b if rule == "fixed" else None
     with torch.no_grad():
         ref = m(x, mask, bnd)
         for t in [0, 10, 31, 58]:
@@ -82,3 +82,12 @@ def test_fixed_rule_is_identity_dechunk():
     out = m(x, mask, b)
     assert out["b"].sum().item() == 12
     assert torch.equal(out["p"], out["b"].float())
+
+
+def test_refractory_gaps():
+    m = _model(refractory=3)
+    with torch.no_grad():
+        out = m(torch.randn(4, 80, 11), torch.ones(4, 80, dtype=torch.bool))
+    for row in out["b"]:
+        idx = row.nonzero().flatten()
+        assert (idx.diff() > 3).all()

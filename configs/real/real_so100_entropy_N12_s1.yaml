@@ -1,0 +1,14 @@
+run_id: real_so100_entropy_N12_s1
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 2000
+patience: 100
+max_minutes: 30
+method: entropy
+dataset: real:so100
+N: 12
+seed: 1
+lr: 0.0003
+proxy_run: runs/proxy_so100

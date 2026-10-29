@@ -1,0 +1,10 @@
+run_id: router_lntrue_a3.0
+method: learned
+N: 10
+lr: 1e-3
+alpha: 3.0
+router_norm: true
+seed: 0
+splits: {train: "pilot[0:160]", val: "pilot[160:200]", test: "pilot[160:200]"}
+max_epochs: 1000
+patience: 100

@@ -290,7 +290,8 @@ def save(path, episodes, specs):
 
 def load(path):
     """Returns a list of episode dicts (obs, action, phase, contact, success, goal, retried, truncated, spec)."""
-    z = np.load(path, allow_pickle=False)
+    with np.load(path, allow_pickle=False) as npz:
+        z = {k: npz[k] for k in npz.files}  # decompress each array once
     off = z["offsets"]
     specs = json.loads(str(z["specs"]))
     eps = []
