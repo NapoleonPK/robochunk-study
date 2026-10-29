@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+data/
+downloads/
+runs/*
+!runs/summary*.csv
+*.pt
+.DS_Store
+.pytest_cache/
