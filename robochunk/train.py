@@ -174,6 +174,8 @@ def log(run_dir, msg):
 def main(cfg_path):
     torch.set_num_threads(int(__import__("os").environ.get("OMP_NUM_THREADS", 6)))
     cfg = {**DEFAULTS, **yaml.safe_load(open(cfg_path))}
+    for k in ("lr", "weight_decay", "alpha", "max_minutes"):
+        cfg[k] = float(cfg[k])  # PyYAML reads "3e-4" as a string
     run_dir = Path("runs") / cfg["run_id"]
     run_dir.mkdir(parents=True, exist_ok=True)
     yaml.safe_dump(cfg, open(run_dir / "config.yaml", "w"))
