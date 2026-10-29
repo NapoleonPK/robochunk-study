@@ -76,3 +76,29 @@ Choices the brief left open, one line each, with the reason. Dated entries; newe
 - Velocity and entropy thresholds are fitted on the validation split (the proxy's NLL on its own training data gave a held-out rate of 0.136 for target 0.10).
 - Main-run budget set from two probe runs on the main train/val splits (test pointed at val, so test is untouched): see PREREGISTRATION.md Amendment 1.
 - Téo delegated all decisions to me (2026-10-29); going public stays with him.
+
+## Exploratory analyses added 2026-10-29 (after the main runs started, before any main result) — NOT pre-registered
+Requested by Téo after the pilot report. H1–H4, their metrics and thresholds are unchanged; these are reported in a
+separate "Exploratory" section of the report and never used for a pass/fail verdict. Code: `robochunk/exploratory.py`,
+`scripts/analyze.py exploratory` → `runs/results_exploratory.json`.
+- **Chance-corrected F1** (every method, N = 5/10/20, ±1 and ±3): F1 minus the mean F1 of the same boundaries shuffled
+  within each episode (same count, steps 1..T−1, 1,000 shuffles, seed 0). For Fixed also minus a **grid chance**: the same
+  every-N grid from a random offset per episode (1,000 draws). Why: at N = 10 a ±3 window covers 7 of every 10 steps, so a
+  regular grid scores high by coverage alone (pilot: grid chance 0.561 vs Fixed 0.580 at ±3).
+- **±1-step F1** (pre-registered as a sensitivity tolerance) is shown next to ±3 in the H1 table, not only in an appendix.
+- **Burst-merged F1**: a boundary is kept only if it is ≥ 3 steps after the last kept one (step 0 counts as kept); F1 recomputed.
+- **Boundary density by phase**: boundaries per step inside each of the 7 phases (a boundary at t counts for phase[t];
+  step 0 excluded), per method, with the true phase starts as a reference row.
+- Checked on pilot runs only (`scripts/analyze.py exploratory_pilot`, pilot val = test, not a result).
+
+## Flat model sanity check (2026-10-29)
+Question: Flat (full attention over every step) has more compute than any chunked model but had worse pilot validation
+bits (−10.80 vs learned −12.09). Findings:
+- Same learning-rate search as every method (3e-4 / 1e-3 / 3e-3, 2,000 epochs, patience 150); best 3e-4.
+- Code path: with b = 1 everywhere the main network sees every step, the EMA dechunk is the identity, STE factor is 1;
+  covered by `test_batch_equals_alone[flat]` and `test_fixed_rule_is_identity_dechunk`. No bug found.
+- It overfits the 160 pilot episodes: lowest training loss of all models (−13.07 bits/step at 3e-4, −15.29 at 1e-3)
+  while validation degrades (+0.79 at the last epoch at 1e-3). Train−val gap at the best epoch: Flat 1.12, Fixed 1.15,
+  Random 0.58, learned 0.33. The small GRU proxy (52k parameters) has the best pilot validation bits (−12.50).
+- Conclusion: a data-size effect on the pilot, not a bug. The main Flat runs (2,400 training episodes, 3 seeds) are the
+  real test; if Flat still loses to Fixed there, that is reported as a result, with this diagnosis (train/val gap per method).

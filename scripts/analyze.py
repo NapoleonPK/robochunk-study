@@ -1,6 +1,6 @@
 """Run the pre-registered tests H1–H4 and secondary measures from run outputs.
 
-usage: python scripts/analyze.py [partA|real|partB|all]
+usage: python scripts/analyze.py [partA|real|partB|exploratory|exploratory_pilot|all]
 Writes runs/results_<part>.json and runs/summary_<part>.csv (the README/report numbers come from these).
 """
 import json
@@ -99,8 +99,63 @@ def part_b():
     print(json.dumps(dict(h4=h4, flat_rho=sec["flat"]["rho"], nn_rho=sec["nn"]["rho"]), indent=1, default=float))
 
 
+def _sim_phases(split):
+    from robochunk.datasets import load_dataset
+    from robochunk.train import DEFAULTS
+    d = load_dataset({**DEFAULTS, "dataset": "sim", "splits": {"test": split}})["test"]
+    return [e["phase"] for e in d]
+
+
+def exploratory_boundaries(groups, split, name):
+    """Exploratory (not pre-registered): chance-corrected F1, burst-merged F1, boundary density by phase.
+    groups: {label: [run_id per seed]}. Per-run numbers, then the mean over seeds."""
+    from robochunk import exploratory as X
+    from robochunk.metrics import true_boundaries
+    phases = _sim_phases(split)
+    res = {"_true": {"phase_density": X.phase_density([true_boundaries(p) for p in phases], phases)}}
+    for label, ids in groups.items():
+        ids = [r for r in ids if (OUT / r / "test_eval.npz").exists()]
+        if not ids:
+            continue
+        m0 = A.load_run(ids[0])[0]
+        grid_N = m0["N"] if m0["method"] == "fixed" else None
+        per = {r: X.run_report(A.load_run(r)[1]["bounds_list"], phases, grid_N=grid_N) for r in ids}
+        keys = [k for k in per[ids[0]] if isinstance(per[ids[0]][k], float)]  # lists (95% ranges) stay per run
+        mean = {k: float(np.mean([per[r][k] for r in ids])) for k in keys}
+        mean["phase_density"] = {ph: float(np.mean([per[r]["phase_density"][ph] for r in ids]))
+                                 for ph in per[ids[0]]["phase_density"]}
+        res[label] = dict(mean=mean, runs=per)
+    _dump(name, res)
+    cols = ["rate", "F1_tol1", "chance_F1_tol1", "F1_minus_chance_tol1", "F1_tol3", "chance_F1_tol3",
+            "F1_minus_chance_tol3", "grid_chance_F1_tol1", "grid_chance_F1_tol3", "merged_F1_tol1", "merged_F1_tol3",
+            "merged_rate"]
+    tab = pd.DataFrame({k: v["mean"] for k, v in res.items() if k != "_true"}).T
+    with pd.option_context("display.width", 250):
+        print(tab[[c for c in cols if c in tab]].astype(float).round(3).to_string())
+        dens = pd.DataFrame({k: (v["mean"] if k != "_true" else v)["phase_density"] for k, v in res.items()}).T
+        print("\nboundaries per step, by phase (step 0 excluded)")
+        print(dens.round(3).to_string())
+
+
+def part_exploratory():
+    groups = {f"{m}_N{N}": [f"sim_{m}_N{N}_s{s}" for s in SEEDS] for N in NS for m in METHODS}
+    groups.update({k: [f"{k}_s{s}" for s in SEEDS] for k in
+                   (f"abl_object_N{NM}", f"abl_conv_N{NM}", f"exp_refractory_N{NM}")})
+    exploratory_boundaries(groups, "test", "exploratory")
+
+
+def part_exploratory_pilot():
+    """Same analyses on pilot runs (pilot val = test = pilot[160:200]); for checking the code only."""
+    groups = {"learned_N10": ["p2_lr_learned_lr3e-4"], "fixed_N10": ["p2_lr_fixed_lr3e-4"],
+              "random_N10": ["p2_lr_random_lr3e-4"], "velocity_N10": ["p2_lr_velocity_lr3e-4"],
+              "entropy_N10": ["p2_lr_entropy_v2_lr1e-3"], "learned_N5": ["p2_health_lr3e-4_N5_a0.3"],
+              "learned_N20": ["p2_health_lr3e-4_N20_a0.3"]}
+    exploratory_boundaries(groups, "pilot[160:200]", "exploratory_pilot")
+
+
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "all"
-    for name, fn in [("partA", part_a), ("real", part_real), ("partB", part_b)]:
-        if what in (name, "all"):
+    for name, fn in [("partA", part_a), ("real", part_real), ("partB", part_b), ("exploratory", part_exploratory),
+                     ("exploratory_pilot", part_exploratory_pilot)]:
+        if what == name or (what == "all" and name != "exploratory_pilot"):
             fn()
