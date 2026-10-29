@@ -40,6 +40,7 @@ class SeqStack(nn.Module):
     def __init__(self, d, kind="gru", layers=None):
         super().__init__()
         self.kind = kind
+        self.norm = nn.LayerNorm(d)  # H-Net puts a norm at the end of every encoder/decoder/main network
         if kind == "gru":
             self.net = nn.GRU(d, d, num_layers=layers or 2, batch_first=True)
         elif kind == "conv":
@@ -48,7 +49,7 @@ class SeqStack(nn.Module):
             raise ValueError(kind)
 
     def forward(self, x):
-        return self.net(x)[0] if self.kind == "gru" else self.net(x)
+        return self.norm(self.net(x)[0] if self.kind == "gru" else self.net(x))
 
 
 class MainNet(nn.Module):
@@ -98,6 +99,9 @@ class RoboChunk(nn.Module):
                 self.wk.weight.copy_(torch.eye(d0))
         self.main = MainNet(d0, d1, main_layers, heads, max_chunks)
         self.residual = nn.Linear(d0, d0)
+        with torch.no_grad():  # H-Net initialises the residual projection close to 0
+            self.residual.weight.mul_(1e-3)
+            self.residual.bias.zero_()
         self.decoder = SeqStack(d0, "gru")
         self.head = nn.Linear(d0, 2 * n_ch)
 
