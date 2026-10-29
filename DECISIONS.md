@@ -102,3 +102,12 @@ bits (−10.80 vs learned −12.09). Findings:
   Random 0.58, learned 0.33. The small GRU proxy (52k parameters) has the best pilot validation bits (−12.50).
 - Conclusion: a data-size effect on the pilot, not a bug. The main Flat runs (2,400 training episodes, 3 seeds) are the
   real test; if Flat still loses to Fixed there, that is reported as a result, with this diagnosis (train/val gap per method).
+
+## Speed: threads per job (2026-10-29 20:45, during the main runs)
+- Profile (main training data, 2 other jobs running): a training step is thousands of small GRU ops run step by step;
+  each job used ~1.25 cores of its 6 threads. ms/step at 1 / 2 / 6 threads: learned N10 108 / 134 / 150, Fixed N5
+  176 / – / 191, conv ablation 148 / 152 / 153, Flat 603 / 537 / 429.
+- Loss after 12–15 training steps is bit-identical at every thread count for all four, so the change cannot alter results.
+- From sim_fixed_N20 onwards: 1 thread per job, 6 for Flat (`scripts/run.sh`). Still at most 2 jobs; Flat still alone.
+  Runs before the switch used 6 threads. The queue was restarted after the two running jobs finished (no run interrupted).
+- Not done: Part B policies next to the Flat runs (extra load could push Flat into its 75-min time cap).
