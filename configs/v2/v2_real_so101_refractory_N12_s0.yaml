@@ -1,0 +1,17 @@
+run_id: v2_real_so101_refractory_N12_s0
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 6000
+patience: 400
+max_minutes: 45
+method: learned
+dataset: real:so101
+N: 12
+seed: 0
+lr: 0.0003
+alpha: 0.3
+router_norm: true
+identity_init: true
+refractory: 3

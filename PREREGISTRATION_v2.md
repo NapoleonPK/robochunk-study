@@ -1,6 +1,6 @@
 # RoboChunk v2 — confirmatory test of the refractory router (pre-registration)
 
-**Status: DRAFT rev. 2, 2026-10-30. Awaiting Téo's approval. Nothing below has been generated, trained or evaluated.**
+**Status: APPROVED by Téo, 2026-10-30 (rev. 3). Committed and tagged `prereg-v2` before any v2 data was generated or downloaded and before any v2 run.**
 On approval this file, `runs/v2/frozen_artifacts.sha256`, the v2 configs and `scripts/analyze_v2.py` are committed and
 tagged `prereg-v2` *before* the fresh episodes are generated, the new dataset is downloaded or any v2 run starts.
 Author: Téo Tran Van Lieu. Builds on `PREREGISTRATION.md` (v1).
@@ -91,15 +91,23 @@ as in v1), a fresh check of the v1 entropy gripper-event finding.
 
 ## 5. Hypotheses and pass criteria
 
-Chance F1 used by H1b-v2, per method, run and fresh episode: **shuffle chance** = mean F1 (±3) over 1,000 within-episode
-shuffles of that run's boundaries in that episode (same count, uniform without replacement over steps 1…T−1; RNG seed 0);
-for **Fixed**, **grid chance** = the exact mean F1 (±3) over the 10 grid offsets o = 0…9 of the grid {o, o+10, …} (step 0
-excluded). Chance-corrected F1 = F1 − chance, per episode, averaged over the method's seeds.
+Chance F1 used by H1b-v2, **for every method including Fixed**, per run and fresh episode of length T: **circular-shift
+chance** = mean F1 (±3) over 1,000 random circular shifts of that run's boundary pattern within the episode. The pattern is
+the set of all the run's boundary steps in the episode, including the forced step 0; a shift by k maps t → (t + k) mod T,
+with k drawn uniformly from 1…T−1 (a new `numpy.random.default_rng(0)` for each run, drawing 1,000 shifts per episode in
+episode order, so every run gets the same shift sequence and methods are compared on common random numbers); the
+one shifted boundary that lands on step 0 is then dropped, so the number of scored boundaries is unchanged. Shifting keeps
+the run's spacing (bursts stay bursts, refractory gaps stay gaps) and only moves where the pattern sits relative to the true
+phase changes. Chance-corrected F1 = F1 − chance, per episode, averaged over the method's seeds.
+*Why not a uniform shuffle:* scattering the boundaries uniformly breaks the refractory spacing and creates near-duplicates
+that one-to-one matching penalises, which understates the refractory router's chance (biasing H1b in its favour) and does
+the reverse for a bursty router. The uniform-shuffle chance and the grid-offset chance (for Fixed) used in v1 are kept as
+secondary measures (§7) for comparison with v1.
 
 | ID | Test | Pass criterion |
 |---|---|---|
 | H1-v2 | Fresh sim test set (300 episodes), N = 10. Boundary F1 at ±3, one-to-one nearest-first matching, step-0 boundary ignored, per episode then averaged; per-episode F1 averaged over each method's 3 seeds. | **Unchanged from v1.** For **every** baseline (Fixed, Random, Entropy, Velocity minima): mean over episodes of [refractory F1 − baseline F1] ≥ 0.10, **and** the 95% paired percentile bootstrap CI (10,000 resamples of episodes, seed 0) excludes 0. |
-| H1b-v2 (co-primary) | Same episodes and runs. Chance-corrected F1 at ±3 as defined above (shuffle chance for every method except Fixed, grid chance for Fixed). | For **every** baseline: mean over episodes of [refractory chance-corrected F1 − baseline chance-corrected F1] > 0, **and** the 95% paired percentile bootstrap CI (10,000 resamples of episodes, seed 0) excludes 0. |
+| H1b-v2 (co-primary) | Same episodes and runs. Chance-corrected F1 at ±3 with the circular-shift chance defined above, for every method. | For **every** baseline: mean over episodes of [refractory chance-corrected F1 − baseline chance-corrected F1] > 0, **and** the 95% paired percentile bootstrap CI (10,000 resamples of episodes, seed 0) excludes 0. |
 | H3-v2 | Real test splits of SO-100 and Koch, N_real = 12, gripper events as in v1 (hysteresis 0.65 / 0.35 on the gripper command normalised by its 2nd/98th percentiles). | **Unchanged from v1.** Share of refractory boundaries (step 0 excluded) within ±3 steps of a gripper event, pooling the 3 seeds (each seed × episode one unit), ≥ 2× the mean share under 1,000 within-unit shuffles, **and** one-sided permutation p < 0.01. Per dataset; *supported* if both pass, *mixed* if one, *not supported* if none. |
 | H3b-v2 | Fresh: SO-101 test split, same N_real, events, pooling and shuffle test. | Same rule as H3: ratio ≥ 2× **and** p < 0.01 → pass; otherwise fail. Reported separately from H3-v2. |
 
@@ -110,15 +118,21 @@ H1-v2 and H1b-v2 are co-primary and reported side by side. Neither verdict is re
 - **H1-v2:** on the v1 test split the refractory router's F1 at ±3 exceeded Random by about 0.21, Entropy by 0.17 and
   Velocity by 0.12, but **Fixed by only about 0.036**. H1-v2 is expected to **fail** on the Fixed comparison. The v1
   margin is kept anyway.
-- **H1b-v2:** on the v1 test split (v1 exploratory numbers, grid chance by 1,000 random offsets there), chance-corrected F1
-  at ±3 was about +0.176 for the refractory router vs +0.019 for Fixed (grid chance), +0.083 Velocity, +0.032 Entropy,
-  −0.003 Random. H1b-v2 is expected to **pass** if the effect is real; the closest comparison is Velocity.
+- **H1b-v2:** the v1 exploratory numbers used the **old chance definitions** (uniform within-episode shuffle; grid chance by
+  1,000 random offsets for Fixed), not the circular-shift chance of H1b-v2. With those, chance-corrected F1 at ±3 on the v1
+  test split was about +0.176 for the refractory router vs +0.019 for Fixed (grid chance), +0.083 Velocity, +0.032
+  Entropy, −0.003 Random. The circular-shift chance is expected to be higher for the refractory router than its uniform
+  shuffle chance (its spacing is kept), so its v2 margin may be smaller than these v1 numbers suggest. No circular-shift
+  numbers have been computed on any data. H1b-v2 is expected to pass if the effect is real; the closest comparison is
+  Velocity.
 - **H3-v2 / H3b-v2:** no prediction (the refractory router was never run on real data). The plain router reached 1.89×
   (SO-100) and 1.77× (Koch) in v1.
 
 ## 7. Secondary measures (reported, no pass/fail)
 
-Fresh sim set: F1 at ±1 and ±5; chance-corrected F1 at ±1; burst-merged F1; boundary density by phase; realised rate;
+Fresh sim set: F1 at ±1 and ±5; chance-corrected F1 at ±1 (circular-shift chance); **chance-corrected F1 at ±3 with the v1
+chance definitions** (uniform within-episode shuffle for every method, and grid-offset chance for Fixed), for comparison
+with v1; burst-merged F1; boundary density by phase; realised rate;
 next-step bits per step of the refractory models vs Fixed at N = 10 (with the v1 compression rule); the secondary seeds
 3–5. Real data: event recall (share of gripper events with a boundary within ±3), burst locations, realised rate and stop
 reason per run; SO-101 entropy rule with the same H3 statistic.
@@ -134,3 +148,13 @@ reason per run; SO-101 entropy rule with the same H3 statistic.
 5. Any deviation is logged with its reason in a dated amendment at the end of this file before results are reported.
 
 Estimated compute: about 5–6 hours (9 real runs at up to 45 min, 3 sim runs at up to 50 min, one proxy, evaluation).
+
+## 9. Limitations (stated in advance)
+
+- **H3b-v2 rests on 5 test episodes** (SO-101 has 50 episodes; the 80/10/10 split leaves 5 for test). Pooling 3 seeds gives
+  15 units, but the events come from the same 5 episodes, so a pass or fail is fragile. The same holds for SO-100 in H3-v2.
+- The SO-100 and Koch test episodes are not fresh (§3).
+- The simulated test is fresh, but the three primary refractory models were trained before v2 was written; seeds 3–5 are the
+  only check that the effect belongs to the training procedure.
+- One refractory window (r = 3) is tested; it equals the ±3 scoring tolerance, so ±1 results are reported alongside.
+- Koch runs may stop on the 45-min time cap, as in v1.

@@ -15,6 +15,7 @@ DATASETS = {
     # name: (HF repo id, gripper index in action)
     "so100": ("lerobot/svla_so100_pickplace", 5),
     "koch": ("lerobot/koch_pick_place_1_lego", 5),
+    "so101": ("lerobot/svla_so101_pickplace", 5),  # v2 only (H3b-v2)
 }
 ROOT = Path("downloads/real")
 HYST_LO, HYST_HI = 0.35, 0.65

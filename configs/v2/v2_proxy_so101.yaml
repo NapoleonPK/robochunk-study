@@ -1,0 +1,12 @@
+run_id: v2_proxy_so101
+batch: 64
+weight_decay: 0.01
+warmup_steps: 200
+device: cpu
+max_epochs: 6000
+patience: 400
+max_minutes: 45
+method: proxy
+dataset: real:so101
+lr: 0.001
+seed: 0

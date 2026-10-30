@@ -32,6 +32,22 @@ def chance_f1(bounds, phases, tol, n=1000, seed=0):
     return float(null.mean()), float(np.quantile(null, 0.025)), float(np.quantile(null, 0.975))
 
 
+def circular_chance_f1(bounds, phases, tol, n=1000, seed=0):
+    """v2 chance (PREREGISTRATION_v2.md §5): per episode, mean F1 over n random circular shifts of the run's boundary
+    pattern (all boundary steps including step 0; t -> (t + k) mod T, k uniform on 1..T-1). The shifted boundary that
+    lands on step 0 is dropped, so the scored count is unchanged and the spacing is kept. A new rng(seed) per call,
+    drawing n shifts per episode in episode order. Returns an array of per-episode chance F1."""
+    rng = np.random.default_rng(seed)
+    out = np.empty(len(phases))
+    for i, (b, ph) in enumerate(zip(bounds, phases)):
+        T = len(ph)
+        pat = np.union1d(np.asarray(b, dtype=np.int64), [0])
+        t = true_boundaries(ph)
+        ks = rng.integers(1, T, size=n)
+        out[i] = np.mean([boundary_prf(((pat + k) % T)[(pat + k) % T != 0], t, tol)[2] for k in ks])
+    return out
+
+
 def grid_chance_f1(phases, N, tol, n=1000, seed=0):
     """Chance floor for a regular grid: boundaries every N steps from a random offset U{0..N-1} per episode
     (step 0 excluded). Returns (mean, 2.5%, 97.5%) over n draws."""

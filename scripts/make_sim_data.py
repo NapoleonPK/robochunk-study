@@ -10,11 +10,12 @@ SPLITS = {  # name: (first seed, count)
     "train": (0, 2400),
     "val": (100_000, 300),
     "test": (200_000, 300),
+    "fresh": (700_000, 300),  # v2 confirmatory test set (PREREGISTRATION_v2.md); generated only after tag prereg-v2
 }
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--splits", nargs="*", default=list(SPLITS))
+    ap.add_argument("--splits", nargs="*", default=[k for k in SPLITS if k != "fresh"])
     ap.add_argument("--out", default="data/sim")
     args = ap.parse_args()
     Path(args.out).mkdir(parents=True, exist_ok=True)
