@@ -4,6 +4,7 @@ data/
 downloads/
 runs/*
 !runs/summary*.csv
+!runs/results_*.json
 *.pt
 .DS_Store
 .pytest_cache/
