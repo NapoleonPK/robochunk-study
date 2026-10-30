@@ -21,3 +21,14 @@
   generalisation. This makes the low-novelty end of the ranking negative rather than zero; the report must say so, because it
   contributes to ρ.
 - Flat novelty gives nearly the same ρ as RoboChunk novelty; the chunked model adds little over an unchunked one here.
+
+## H4 post-hoc diagnostics (requested 2026-10-30; NOT pre-registered; `scripts/h4_posthoc.py` → runs/results_partB_posthoc.json)
+- Gains (95% CI): C1 -0.017 [-0.087, +0.055]; C2 -0.103 [-0.163, -0.042]; C3 -0.088 [-0.172, -0.010].
+- BC budget is a fixed 20,000 gradient updates (batch 512), not epochs. Passes over the data: R 260, R ∪ C (200 episodes) 186.
+- Success by broad-test subgroup (R / R∪C1 / R∪C2 / R∪C3): object in core square (n=50) 0.767 / 0.807 / 0.627 / 0.673; outside core (n=150) 0.327 / 0.291 / 0.236 / 0.240.
+  C2 and C3 hurt *inside* the core region too, so the earlier reading (extra core data costs off-core generalisation) is not
+  supported. Leading hypothesis: with fixed updates, new unique data lowers passes per sample and the policy under-fits;
+  duplicates (C1) add no unique samples and stay neutral. Test queued after v2: `scripts/h4_matched_epochs.py` retrains
+  R ∪ C1/C2/C3/C6 with updates scaled to R's passes (3 seeds), results in runs/results_partB_matched.json.
+- Sensitivity, ρ over C4–C11 only (C1–C3 excluded, n = 8): 0.690 (p = 0.058).
+- 95% CI for the pre-registered ρ = 0.782 (n = 11): Fisher z with Bonett–Wright SE [0.25, 0.95]; bootstrap over candidates [0.35, 0.95]. Both include values below the 0.6 threshold.
