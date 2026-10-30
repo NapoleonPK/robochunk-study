@@ -7,3 +7,13 @@ runs/*
 *.pt
 .DS_Store
 .pytest_cache/
+*.parquet
+*.npz
+*.npy
+*.pth
+*.ckpt
+*.safetensors
+*.mp4
+*.pkl
+.env
+*.pem

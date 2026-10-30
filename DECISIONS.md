@@ -127,3 +127,9 @@ bits (−10.80 vs learned −12.09). Findings:
   History was rewritten once with `git filter-repo --replace-text` to redact only that string; dates, content, messages and
   tags are otherwise unchanged. Old→new commit hashes: `docs/HISTORY.md`, `docs/commit-map.txt`. Hashes cited in documents
   written before publication are the old ones.
+
+## Sensitive-content guard (2026-10-30)
+Every commit and push is checked by `scripts/check_sensitive.py` (git hooks via `scripts/install_hooks.sh`, and a GitHub
+Action on every push): it blocks any e-mail address other than GitHub/Anthropic no-reply addresses, API tokens and private
+keys, password assignments, data/download/checkpoint/video files and files over 5 MB, and non-no-reply commit identities.
+The old private repository (with the unredacted history) is to be deleted.

@@ -1,0 +1,14 @@
+name: sensitive-content check
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/check_sensitive.py --all
+      - name: author and committer emails are no-reply
+        run: |
+          bad=$(git log --format='%ae%n%ce' | sort -u | grep -vE '@users\.noreply\.github\.com$|^noreply@(github|anthropic)\.com$' || true)
+          if [ -n "$bad" ]; then echo "non-no-reply commit email found"; exit 1; fi
