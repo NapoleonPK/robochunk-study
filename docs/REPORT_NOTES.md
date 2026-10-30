@@ -32,3 +32,9 @@
   R ∪ C1/C2/C3/C6 with updates scaled to R's passes (3 seeds), results in runs/results_partB_matched.json.
 - Sensitivity, ρ over C4–C11 only (C1–C3 excluded, n = 8): 0.690 (p = 0.058).
 - 95% CI for the pre-registered ρ = 0.782 (n = 11): Fisher z with Bonett–Wright SE [0.25, 0.95]; bootstrap over candidates [0.35, 0.95]. Both include values below the 0.6 threshold.
+- **Matched-passes test result** (`scripts/h4_matched_epochs.py` → runs/results_partB_matched.json; updates scaled so R ∪ C
+  gets R's ~260 passes, gain vs R at its original 20k updates): C1 +0.052 [-0.020, +0.123]; C2 +0.025 [-0.048, +0.098]; C3 +0.038 [-0.063, +0.153]; C6 +0.255 [+0.170, +0.335].
+  C2 and C3 move from clearly negative to about zero (CIs include 0): the negative in-distribution gains were an artefact of
+  the fixed-update BC budget, not of the data. C1 (no new information) rising too shows part of any gain is just more updates,
+  so R itself was somewhat under-trained. Consequence for H4: the verdict stands as scored, but the negative low-novelty end
+  that helped ρ came partly from this artefact. A fair re-test would re-run all 15 candidates (and R) at matched passes.

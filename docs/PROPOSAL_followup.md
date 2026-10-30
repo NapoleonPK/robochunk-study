@@ -48,8 +48,9 @@ test set, BC 3 seeds).
   placed last, versus novelty alone. Descriptive (n = 8 is too small for a pass/fail threshold).
 
 ## Lessons carried over from Part B
-- **BC budget**: decided after the post-hoc matched-passes test (`scripts/h4_matched_epochs.py`). If fixed updates explain the
-  negative C2/C3 gains, the follow-up trains for a fixed number of passes over the data instead.
+- **BC budget**: the matched-passes test showed the fixed-update budget caused the negative C2/C3 gains
+  (runs/results_partB_matched.json). The follow-up trains every policy, including R, for the same number of passes over
+  its data, and first re-runs the 15 Part B candidates that way (about 15 min) to give a fair post-hoc ρ.
 - Report CIs for every ρ (n is small) and keep any re-analysis labelled post hoc.
 
 ## Cost on the Mac mini
