@@ -18,3 +18,4 @@ runs/*
 *.pkl
 .env
 *.pem
+!runs/partb_novelty.json
