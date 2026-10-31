@@ -20,8 +20,8 @@ NM = FROZEN["N_main"]
 NS = [NM // 2, NM, 2 * NM]
 SEEDS = [0, 1, 2]
 # categorical slots in fixed order (validated reference palette, light mode)
-COL = dict(learned="#2a78d6", fixed="#eb6834", random="#1baf7a", entropy="#eda100", velocity="#e87ba4", flat="#52514e")
-NAME = dict(learned="RoboChunk (learned)", fixed="Fixed", random="Random", entropy="Entropy (BLT-like)",
+COL = dict(refractory="#6250d6", learned="#2a78d6", fixed="#eb6834", random="#1baf7a", entropy="#eda100", velocity="#e87ba4", flat="#52514e")
+NAME = dict(refractory="Refractory router", learned="RoboChunk (learned)", fixed="Fixed", random="Random", entropy="Entropy (BLT-like)",
             velocity="Velocity minima", flat="Flat (no chunking)")
 METHODS = ["learned", "fixed", "random", "entropy", "velocity"]
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e6e5e0"
@@ -38,7 +38,7 @@ def fig1(n_eps=6):
     rng = np.random.default_rng(0)
     pick = sorted(rng.choice(len(test), n_eps, replace=False))
     bnd = {m: load_run(f"sim_{m}_N{NM}_s0")[1]["bounds_list"] for m in METHODS}
-    fig, axes = plt.subplots(n_eps, 1, figsize=(7.5, 1.25 * n_eps), sharex=False)
+    fig, axes = plt.subplots(n_eps, 1, figsize=(7.5, 1.5 * n_eps), sharex=False, gridspec_kw=dict(hspace=0.75))
     for ax, i in zip(axes, pick):
         ph = test[i]["phase"]
         T = len(ph)
@@ -168,25 +168,82 @@ def fig5(window=30):
 
 
 def fig6():
-    """Part B: novelty against policy gain; clean candidates as dots, corrupted as crosses."""
+    """Part B: novelty against policy gain. Left: clean candidates (the H4 test). Right: all 15 on a symmetric-log axis."""
     res = json.load(open("runs/partb_results.json"))
-    fig, ax = plt.subplots(figsize=(5, 3.6))
-    for c, v in res["candidates"].items():
-        corrupt = c.startswith("X")
-        ax.errorbar(v["novelty"], v["gain"], yerr=[[v["gain"] - v["gain_ci"][0]], [v["gain_ci"][1] - v["gain"]]],
-                    fmt="x" if corrupt else "o", color=COL["fixed"] if corrupt else COL["learned"], ms=6, lw=0.8,
-                    mew=1.8)
-        ax.annotate(c, (v["novelty"], v["gain"]), xytext=(4, 3), textcoords="offset points", fontsize=7, color=INK)
-    ax.axhline(0, color=MUTED, lw=0.8)
-    ax.set_xlabel("novelty (bits / step above held-out R)")
-    ax.set_ylabel("success gain over R alone")
-    ax.set_title(f"clean (dots): Spearman ρ = {res['h4']['rho']:.2f}; corrupted (crosses)", fontsize=8, loc="left")
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.6, 3.6), gridspec_kw=dict(width_ratios=[1, 1.15], wspace=0.3))
+    for ax, which in ((a1, "clean"), (a2, "all")):
+        for c, v in res["candidates"].items():
+            corrupt = c.startswith("X")
+            if which == "clean" and corrupt:
+                continue
+            ax.errorbar(v["novelty"], v["gain"], yerr=[[v["gain"] - v["gain_ci"][0]], [v["gain_ci"][1] - v["gain"]]],
+                        fmt="x" if corrupt else "o", color=COL["fixed"] if corrupt else COL["learned"], ms=6, lw=0.8,
+                        mew=1.8, ecolor=GRID if not corrupt else None, zorder=3)
+            off = {"C1": (-14, 2), "C2": (-14, -4), "C3": (5, -6), "C9": (-12, -10), "C8": (5, 4)}.get(c, (5, 3))
+            ax.annotate(c, (v["novelty"], v["gain"]), xytext=off, textcoords="offset points", fontsize=7, color=INK)
+        ax.axhline(0, color=MUTED, lw=0.8)
+        ax.set_ylabel("success gain over R alone")
+    a1.set_xlabel("novelty (bits / step above held-out R)")
+    a1.set_title(f"clean candidates C1–C11: Spearman ρ = {res['h4']['rho']:.2f}", fontsize=8, loc="left")
+    a2.set_xscale("symlog", linthresh=1)
+    a2.set_xlim(-1.2, 600)
+    a2.set_xlabel("novelty (symmetric log scale)")
+    a2.set_title("all 15: corrupted X1–X4 (crosses) look most novel", fontsize=8, loc="left")
     fig.savefig(FIG / "fig6_novelty_gain.png")
+
+
+def fig7():
+    """v2, fresh simulated test set: raw and chance-corrected (circular shift) boundary F1 at ±3 per method."""
+    r = json.load(open("runs/results_v2.json"))["sim"]["methods"]
+    order = ["refractory", "fixed", "velocity", "entropy", "random", "learned"]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.6, 3.0), gridspec_kw=dict(wspace=0.3))
+    x = np.arange(len(order))
+    for ax, key, title in ((a1, "F1", "raw F1 (±3 steps)"), (a2, "cf_circ", "F1 − circular-shift chance (±3)")):
+        vals = [r[m][key]["3"] for m in order]
+        ax.bar(x, vals, color=[COL[m] for m in order], width=0.7, edgecolor="white", linewidth=2)
+        top = max(vals)
+        for xi, v in zip(x, vals):
+            ax.text(xi, max(v, 0) + 0.02 * top, f"{v:+.3f}" if key == "cf_circ" else f"{v:.3f}", ha="center",
+                    fontsize=7, color=INK)
+        ax.set_ylim(min(0, min(vals)) * 1.3, top * 1.18)
+        ax.set_axisbelow(True)
+        ax.grid(axis="x", visible=False)
+        ax.set_xticks(x)
+        ax.set_xticklabels(["Refractory router", "Fixed", "Velocity minima", "Entropy", "Random", "Learned (plain)"],
+                           rotation=30, ha="right", fontsize=7)
+        ax.axhline(0, color=MUTED, lw=0.8)
+        ax.set_title(title, fontsize=8, loc="left")
+    a1.set_ylabel("boundary F1, 300 fresh episodes")
+    fig.suptitle("v2 confirmatory test: H1-v2 (raw, vs Fixed) failed; H1b-v2 (chance-corrected) passed", fontsize=9,
+                 x=0.02, ha="left", y=1.04)
+    fig.savefig(FIG / "fig7_v2_f1.png")
+
+
+def fig8():
+    """Post hoc: policy gain with the original fixed-update BC budget vs passes matched to R."""
+    orig = json.load(open("runs/results_partB.json"))["candidates"]
+    mat = json.load(open("runs/results_partB_matched.json"))
+    cs = ["C1", "C2", "C3", "C6"]
+    fig, ax = plt.subplots(figsize=(5, 3.0))
+    for k, (src, lab, col, dx) in enumerate(((orig, "fixed 20k updates (as run)", COL["fixed"], -0.12),
+                                             (mat, "passes matched to R (post hoc)", COL["learned"], 0.12))):
+        for i, c in enumerate(cs):
+            g = src[c]["gain"]
+            lo, hi = src[c]["gain_ci"] if "gain_ci" in src[c] else src[c]["ci"]
+            ax.errorbar(i + dx, g, yerr=[[g - lo], [hi - g]], fmt="o", color=col, ms=6, lw=1,
+                        label=lab if i == 0 else None)
+    ax.axhline(0, color=MUTED, lw=0.8)
+    ax.set_xticks(range(len(cs)))
+    ax.set_xticklabels(["C1 duplicates", "C2 near-dup.", "C3 same region", "C6 whole table"], fontsize=7)
+    ax.set_ylabel("success gain over R")
+    ax.legend(fontsize=7, loc="upper left")
+    ax.set_title("Negative in-distribution gains were a training-budget artefact", fontsize=8, loc="left")
+    fig.savefig(FIG / "fig8_bc_budget.png")
 
 
 if __name__ == "__main__":
     FIG.mkdir(exist_ok=True)
-    todo = sys.argv[1:] or ["fig1", "fig2", "fig3", "fig4", "fig5", "fig6"]
+    todo = sys.argv[1:] or ["fig1", "fig2", "fig3", "fig4", "fig5", "fig6", "fig7", "fig8"]
     for f in todo:
         globals()[f]()
         print("wrote", f)

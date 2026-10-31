@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "RoboChunk: a pre-registered study of H-Net dynamic chunking on robot trajectories"
+authors:
+  - family-names: "Tran Van Lieu"
+    given-names: "Téo"
+date-released: 2026-10-31
+license: MIT
+repository-code: "https://github.com/NapoleonPK/robochunk-study"
+references:
+  - type: article
+    title: "Dynamic Chunking for End-to-End Hierarchical Sequence Modeling"
+    authors:
+      - family-names: "Hwang"
+        given-names: "Sukjun"
+      - family-names: "Wang"
+        given-names: "Brandon"
+      - family-names: "Gu"
+        given-names: "Albert"
+    identifiers:
+      - type: other
+        value: "arXiv:2507.07955"
