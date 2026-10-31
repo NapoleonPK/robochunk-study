@@ -109,7 +109,8 @@ def fig4(n_eps=4):
     """Real episodes: normalised gripper command with RoboChunk boundaries (seed 0)."""
     from robochunk.data_real import load_real
     names = list(FROZEN["real_datasets"])
-    fig, axes = plt.subplots(n_eps, len(names), figsize=(7.5, 1.3 * n_eps), squeeze=False)
+    fig, axes = plt.subplots(n_eps, len(names), figsize=(7.5, 1.5 * n_eps), squeeze=False,
+                             gridspec_kw=dict(hspace=0.55, wspace=0.15))
     for c, name in enumerate(names):
         nr = FROZEN["real_datasets"][name]
         test = load_real(name)["test"]
@@ -125,9 +126,10 @@ def fig4(n_eps=4):
             ax.set_yticks([0, 1])
             ax.grid(False)
             if r == 0:
-                ax.set_title(f"{name}: gripper command (black), learned boundaries (blue), events ±3 (orange)",
-                             fontsize=6.5, loc="left")
+                ax.set_title({"so100": "SO-100", "koch": "Koch"}.get(name, name), fontsize=8, loc="left")
         axes[-1, c].set_xlabel("step (30 Hz)")
+    fig.suptitle("Test episodes: gripper command (black), learned boundaries (blue), gripper events ±3 steps (orange)",
+                 fontsize=8, x=0.02, ha="left", y=0.99)
     fig.savefig(FIG / "fig4_real_episodes.png")
 
 
@@ -159,11 +161,11 @@ def fig5(window=30):
         ax.bar(lags, obs / n_ev, 0.9, color=COL["learned"], label="learned boundaries")
         ax.plot(lags, shuf / n_ev, color=INK, lw=1.2, label="within-episode shuffle")
         ax.axvspan(-3.5, 3.5, color=GRID, zorder=0)
-        ax.set_title(name, fontsize=8, loc="left")
+        ax.set_title({"so100": "SO-100", "koch": "Koch"}.get(name, name), fontsize=8, loc="left")
         ax.set_xlabel("steps from gripper event")
         ax.grid(axis="x", visible=False)
     axes[0, 0].set_ylabel("boundaries per event per lag")
-    axes[0, 0].legend(fontsize=7)
+    fig.legend(*axes[0, 0].get_legend_handles_labels(), fontsize=7, loc="upper right", ncol=2, bbox_to_anchor=(1.0, 1.08))
     fig.savefig(FIG / "fig5_peri_event.png")
 
 
