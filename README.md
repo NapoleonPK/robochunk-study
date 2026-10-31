@@ -58,7 +58,10 @@ PYTHONPATH=. python scripts/analyze_v2.py         # v2 confirmatory test (after 
 PYTHONPATH=. python scripts/make_figures.py && python scripts/make_report.py
 ```
 
-Checkpoints of the simulated-data models are on Hugging Face (see `REPORT.md`, *Artifacts*). Before committing, run
+Checkpoints of the simulated-data and Part B models: [huggingface.co/PAOP123/robochunk](https://huggingface.co/PAOP123/robochunk).
+Simulated data and result files: [huggingface.co/datasets/PAOP123/robochunk-sim](https://huggingface.co/datasets/PAOP123/robochunk-sim).
+
+Before committing, run
 `sh scripts/install_hooks.sh` once: the hooks block e-mail addresses, tokens and data files.
 
 Real datasets are read from Hugging Face (`lerobot/svla_so100_pickplace`, `lerobot/koch_pick_place_1_lego`, and for v2
