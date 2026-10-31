@@ -1,0 +1,27 @@
+{
+ "note": "Timestamps recorded by third parties, copied from their APIs on 2026-10-31. Gmail: message 'date' from the Gmail API for messages sent from the author's account to the same address (verifiable by the account owner; originals with headers available on request). GitHub events: repository events API of the earlier private repository NapoleonPK/robochunk (visible to its owner while it exists). GitHub Actions and Hugging Face: public.",
+ "events": [
+  {"utc": "2026-10-29T13:08:38Z", "source": "GitHub push event (earlier private repo)", "what": "push to main ending at old commit 1f1faa0 (= 7ffc024, tag prereg)", "hash_old": "1f1faa0"},
+  {"utc": "2026-10-29T13:08:51Z", "source": "Gmail, sent check-in email", "what": "check-in 1+2; its text quotes 'Pre-registration committed as 1f1faa0 (tag \"prereg\")'", "hash_old": "1f1faa0", "gmail_id": "1a187c70b3ad1631"},
+  {"utc": "2026-10-29T18:29:16Z", "source": "Gmail, sent check-in email", "what": "'Amendment 1 is committed and pushed (tag prereg-amend1). No main result existed before it.' (tag name, no hash)", "gmail_id": "1a188ec65fdb616c"},
+  {"utc": "2026-10-29T18:35:33Z", "source": "GitHub push event (earlier private repo)", "what": "push whose previous head was old commit f61d0f3 (= fb5e2ad, tag prereg-amend1), so that commit was on GitHub by then", "hash_old": "f61d0f3"},
+  {"utc": "2026-10-30T08:27:17Z", "source": "Gmail, sent check-in email", "what": "v1 results H1-H3 reported (v2 was designed after this, as PREREGISTRATION_v2.md states)", "gmail_id": "1a18beb9e1cfebc1"},
+  {"utc": "2026-10-30T08:42:19Z", "source": "Gmail, sent email", "what": "draft PREREGISTRATION_v2.md rev. 1 attached, for approval", "gmail_id": "1a18bf964a391ee6"},
+  {"utc": "2026-10-30T08:53:41Z", "source": "Gmail, sent email", "what": "draft PREREGISTRATION_v2.md rev. 2 attached, for approval (the approved rev. 3 was not emailed)", "gmail_id": "1a18c03cde862a5b"},
+  {"utc": "2026-10-30T09:42:58Z", "source": "GitHub (public repo created)", "what": "NapoleonPK/robochunk-study created with the rewritten history, including tag prereg-v2 (9e99328)"},
+  {"utc": "2026-10-30T10:39:31Z", "source": "GitHub Actions (public)", "what": "first CI run, on commit 53c390d, which has 9e99328 (tag prereg-v2) as an ancestor; the v2 training runs started after this", "hash_new": "53c390d"},
+  {"utc": "2026-10-30T13:42:56Z", "source": "GitHub Actions (public)", "what": "CI run on commit 9e1347d, which adds runs/results_v2.json (v2 analysis, single run)", "hash_new": "9e1347d"},
+  {"utc": "2026-10-30T13:45:55Z", "source": "Gmail, sent check-in email", "what": "v2 results reported", "gmail_id": "1a18d0f57fd47524"},
+  {"utc": "2026-10-31T07:12:27Z", "source": "Hugging Face commit", "what": "dataset PAOP123/robochunk-sim, first upload (commit f509bea0ce)"},
+  {"utc": "2026-10-31T07:13:24Z", "source": "Hugging Face commit", "what": "model PAOP123/robochunk, first upload (commits be8a09a8f0, 9f7f28c5ac at 07:13:29Z)"}
+ ],
+ "self_reported": [
+  {"utc": "2026-10-29T13:08:32Z", "what": "git commit 7ffc024 (old 1f1faa0), tag prereg"},
+  {"utc": "2026-10-29T18:28:57Z", "what": "git commit fb5e2ad (old f61d0f3), tag prereg-amend1"},
+  {"utc": "2026-10-29T18:29:02Z", "what": "first v1 main run started (runs/main_queue.log; no run had finished before the amendment)"},
+  {"utc": "2026-10-30T08:57:49Z", "what": "git commit 9e99328 (old d9b86c7), tag prereg-v2"},
+  {"utc": "2026-10-30T08:58:28Z", "what": "git commit ac72fec: fresh simulated test split generated after the tag, SHA-256 recorded"},
+  {"utc": "2026-10-30T11:14:00Z", "what": "v2 training runs started (runs/after_main.log, POLICIES_DONE 12:14 local time)"},
+  {"utc": "2026-10-30T13:40:00Z", "what": "v2 runs finished (V2_DONE 14:40 local time); analyze_v2.py run once afterwards"}
+ ]
+}

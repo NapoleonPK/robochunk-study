@@ -12,17 +12,65 @@ A small **pre-registered** study of H-Net-style dynamic chunking on robot trajec
 `scripts/make_report.py` from the files in `runs/`). Hypotheses, metrics and thresholds were committed before any main
 result (`PREREGISTRATION.md`, tags `prereg`, `prereg-amend1`; `PREREGISTRATION_v2.md`, tag `prereg-v2`).
 
-| test | verdict |
-|---|---|
-| H1 — learned boundaries match motion phases better than every baseline | failed |
-| H2 — learned chunking predicts better than fixed chunking at matched compression | passed |
-| H3 — boundaries near gripper events on real teleoperation data | significant but below threshold |
-| H4 — compression novelty predicts how much a dataset improves a BC policy | passed (corrupted data also scores as most novel) |
-| H1-v2 — refractory router, raw F1, fresh data | failed (as predicted) |
-| H1b-v2 — refractory router, chance-corrected F1, fresh data | passed |
-| H3-v2 / H3b-v2 — refractory router near gripper events, real data | not supported / failed |
+<!-- generated:start (scripts/make_cards.py) -->
+
+## Results
+
+| test | criterion | key numbers (from `runs/results_*.json`) | verdict |
+|---|---|---|---|
+| H1 | learned router − every baseline ≥ 0.10 boundary F1 (±3), CI excludes 0 | learned 0.358 vs Fixed 0.594; difference −0.236 [−0.253, −0.219] | **fail** |
+| H2 | learned bits/step < Fixed at ≥ 2 of 3 N, compression matched | N=5: -13.165 vs -12.650; N=10: -13.150 vs -12.825; N=20: -13.208 vs -13.009 (compression 15.5 < 0.8 N, counts as fail) | **pass** |
+| H3 | ≥ 2× chance near gripper events and p < 0.01, on both datasets | SO-100 1.89× (p = 0.001); Koch 1.77× (p = 0.001) | **significant but below threshold** |
+| H4 | Spearman ρ(novelty, gain) ≥ 0.6 over 11 clean candidates | ρ = 0.782 (p = 0.0045); 95% CI [0.25, 0.95] (post hoc); corrupted data scored most novel in 4 of 4 | **pass** |
+| H1-v2 | refractory router − every baseline ≥ 0.10 raw F1 (fresh data) | vs Fixed +0.042 [+0.023, +0.061] | **fail** (predicted) |
+| H1b-v2 | chance-corrected (circular shift) difference > 0 vs every baseline, CI excludes 0 | vs Fixed +0.103 [+0.084, +0.122]; smallest (vs Velocity minima) +0.055 [+0.038, +0.072] | **pass** |
+| H3-v2 | refractory router, ≥ 2× chance near gripper events, SO-100 and Koch | SO-100 1.53× (p = 0.001); Koch 1.52× (p = 0.001) | **not supported** |
+| H3b-v2 | same rule on a fresh dataset (SO-101, 5 test episodes) | 1.74× (p = 0.004) | **fail** |
+
+![Episode boundaries](figures/fig1_episodes.png)
+
+*True motion phases (bands) and the boundaries each rule places on six simulated test episodes, N = 10.*
 
 ![v2 results](figures/fig7_v2_f1.png)
+
+## Pre-registration hashes
+
+SHA-256 of the pre-registration files at each tag and now (`shasum -a 256 PREREGISTRATION*.md`). `PREREGISTRATION.md` changed once, by Amendment 1, before any main result; neither file has changed since its last tag.
+
+| file | SHA-256 | tag (commit) |
+|---|---|---|
+| `PREREGISTRATION.md` | `e78668239e7401270c572d3feaef8d62cb2210e9d582ae640d525c94b52d8850` | `prereg` (`7ffc024`) |
+| `PREREGISTRATION.md` | `628c6ad61a63b9ee08a84e2d4bf71d6ff3562c84c463cb87767c8c012ec86095` | `prereg-amend1` (`fb5e2ad`) |
+| `PREREGISTRATION.md` | `628c6ad61a63b9ee08a84e2d4bf71d6ff3562c84c463cb87767c8c012ec86095` | `prereg-v2` (`9e99328`) |
+| `PREREGISTRATION_v2.md` | `fa2700491bb7ca95826a0f81b868b538ebae54b47ba37d609a6e18ebd860c6b7` | `prereg-v2` (`9e99328`) |
+| `PREREGISTRATION.md` | `628c6ad61a63b9ee08a84e2d4bf71d6ff3562c84c463cb87767c8c012ec86095` | current file |
+| `PREREGISTRATION_v2.md` | `fa2700491bb7ca95826a0f81b868b538ebae54b47ba37d609a6e18ebd860c6b7` | current file |
+
+## Timeline evidence
+
+Timestamps recorded by third parties (UTC). Source details: `docs/timeline_evidence.json`.
+
+| UTC | source | what it shows |
+|---|---|---|
+| 2026-10-29 13:08:38 | GitHub push event (earlier private repo) | push to main ending at old commit 1f1faa0 (= 7ffc024, tag prereg) |
+| 2026-10-29 13:08:51 | Gmail, sent check-in email | check-in 1+2; its text quotes 'Pre-registration committed as 1f1faa0 (tag "prereg")' |
+| 2026-10-29 18:29:16 | Gmail, sent check-in email | 'Amendment 1 is committed and pushed (tag prereg-amend1). No main result existed before it.' (tag name, no hash) |
+| 2026-10-29 18:35:33 | GitHub push event (earlier private repo) | push whose previous head was old commit f61d0f3 (= fb5e2ad, tag prereg-amend1), so that commit was on GitHub by then |
+| 2026-10-30 08:27:17 | Gmail, sent check-in email | v1 results H1-H3 reported (v2 was designed after this, as PREREGISTRATION_v2.md states) |
+| 2026-10-30 08:42:19 | Gmail, sent email | draft PREREGISTRATION_v2.md rev. 1 attached, for approval |
+| 2026-10-30 08:53:41 | Gmail, sent email | draft PREREGISTRATION_v2.md rev. 2 attached, for approval (the approved rev. 3 was not emailed) |
+| 2026-10-30 09:42:58 | GitHub (public repo created) | NapoleonPK/robochunk-study created with the rewritten history, including tag prereg-v2 (9e99328) |
+| 2026-10-30 10:39:31 | GitHub Actions (public) | first CI run, on commit 53c390d, which has 9e99328 (tag prereg-v2) as an ancestor; the v2 training runs started after this |
+| 2026-10-30 13:42:56 | GitHub Actions (public) | CI run on commit 9e1347d, which adds runs/results_v2.json (v2 analysis, single run) |
+| 2026-10-30 13:45:55 | Gmail, sent check-in email | v2 results reported |
+| 2026-10-31 07:12:27 | Hugging Face commit | dataset PAOP123/robochunk-sim, first upload (commit f509bea0ce) |
+| 2026-10-31 07:13:24 | Hugging Face commit | model PAOP123/robochunk, first upload (commits be8a09a8f0, 9f7f28c5ac at 07:13:29Z) |
+
+Self-reported (git and local run logs, not independent): 2026-10-29 13:08:32 git commit 7ffc024 (old 1f1faa0), tag prereg; 2026-10-29 18:28:57 git commit fb5e2ad (old f61d0f3), tag prereg-amend1; 2026-10-29 18:29:02 first v1 main run started (runs/main_queue.log; no run had finished before the amendment); 2026-10-30 08:57:49 git commit 9e99328 (old d9b86c7), tag prereg-v2; 2026-10-30 08:58:28 git commit ac72fec: fresh simulated test split generated after the tag, SHA-256 recorded; 2026-10-30 11:14:00 v2 training runs started (runs/after_main.log, POLICIES_DONE 12:14 local time); 2026-10-30 13:40:00 v2 runs finished (V2_DONE 14:40 local time); analyze_v2.py run once afterwards.
+
+**History rewrite and commit map.** Before the repository was made public (2026-10-30), its git history was rewritten once with `git filter-repo --replace-text`, only to replace the author's personal e-mail address in `docs/BRIEF.md`. File contents, dates, messages and tags are otherwise unchanged, so the pre-registration files have the same SHA-256 in the old and the new commits (checked for all three tags), but every commit hash changed. Emails, the earlier private repository and run `git.txt` files cite the old hashes; `docs/HISTORY.md` and `docs/commit-map.txt` map them to the new ones (for example `1f1faa0` → `7ffc024`, tag `prereg`). Gmail: message 'date' from the Gmail API for messages sent from the author's account to the same address (verifiable by the account owner; originals with headers available on request). GitHub events: repository events API of the earlier private repository NapoleonPK/robochunk (visible to its owner while it exists). GitHub Actions and Hugging Face: public.
+
+<!-- generated:end -->
 
 ## Where things are
 
